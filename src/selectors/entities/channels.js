@@ -5,7 +5,15 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.getSortedDirectChannelIds = exports.getSortedDirectChannelWithLastPostAt = exports.getSortedDirectChannelWithUnreads = exports.getSortedPrivateChannelIds = exports.getSortedPrivateChannelWithUnreadsIds = exports.getSortedPublicChannelIds = exports.getSortedPublicChannelWithUnreadsIds = exports.getSortedFavoriteChannelIds = exports.getSortedFavoriteChannelWithUnreadsIds = exports.getSortedUnreadChannelIds = exports.getUnreadChannelIds = exports.getChannelIdsForCurrentTeam = exports.getChannelIdsInCurrentTeam = exports.getDirectChannelIds = exports.canManageChannelMembers = exports.getUnreadsInCurrentTeam = exports.getUnreads = exports.getMembersInCurrentChannel = exports.getDefaultChannel = exports.getChannelsWithUnreadSection = exports.getChannelsByCategory = exports.getOtherChannels = exports.getMyChannels = exports.getGroupChannels = exports.getDirectChannels = exports.getChannelsNameMapInCurrentTeam = exports.getChannelsInCurrentTeam = exports.getChannelSetInCurrentTeam = exports.getCurrentChannelStats = exports.getMyCurrentChannelMembership = exports.getMyChannelMember = exports.getCurrentChannel = exports.getChannel = exports.getDirectChannelsSet = exports.getCurrentChannelId = undefined;
 
-var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+var _extends = Object.assign || function (target) {
+    for (var i = 1; i < arguments.length; i++) {
+        var source = arguments[i];for (var key in source) {
+            if (Object.prototype.hasOwnProperty.call(source, key)) {
+                target[key] = source[key];
+            }
+        }
+    }return target;
+};
 
 exports.getAllChannels = getAllChannels;
 exports.getAllChannelStats = getAllChannelStats;
@@ -33,7 +41,15 @@ var _channel_utils = require('../../utils/channel_utils');
 
 var _helpers = require('../../utils/helpers');
 
-function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } } // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
+function _toConsumableArray(arr) {
+    if (Array.isArray(arr)) {
+        for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) {
+            arr2[i] = arr[i];
+        }return arr2;
+    } else {
+        return Array.from(arr);
+    }
+} // Copyright (c) 2016-present Mattermost, Inc. All Rights Reserved.
 // See License.txt for license information.
 
 exports.getCurrentChannelId = _common.getCurrentChannelId;
@@ -411,74 +427,33 @@ var getSortedPrivateChannelIds = exports.getSortedPrivateChannelIds = (0, _helpe
 
 var getSortedDirectChannelWithUnreadsIds = exports.getSortedDirectChannelWithUnreadsIds = (0, _helpers.createIdsSelector)(_common.getCurrentUser, _common.getUsers, getAllChannels, _preferences.getVisibleTeammate, _preferences.getVisibleGroupIds, getSortedFavoriteChannelIds, _preferences.getTeammateNameDisplaySetting, _general.getConfig, _preferences.getMyPreferences, _posts.getLastPostPerChannel, function (currentUser, profiles, channels, teammates, groupIds, favoriteIds, settings, config, preferences, lastPosts, isFirst) {
 
-    if (!currentUser) {
-        return [];
-    }
-    
-    var locale = currentUser.locale || 'en';
-    var channelValues = Object.values(channels);
-    var directChannelsIds = [];
-    teammates.reduce(function (result, teammateId) {
-        var name = (0, _channel_utils.getDirectChannelName)(currentUser.id, teammateId);
-        var channel = channelValues.find(function (c) {
-            return c.name === name;
-        }); //eslint-disable-line max-nested-callbacks
-        if (channel) {
-            var lastPost = lastPosts[channel.id];
-            var otherUser = profiles[(0, _channel_utils.getUserIdFromChannelName)(currentUser.id, channel.name)];
-            if (!favoriteIds.includes(channel.id) && !(0, _channel_utils.isAutoClosed)(config, preferences, channel, lastPost ? lastPost.create_at : 0, otherUser ? otherUser.delete_at : 0)) {
-                result.push(channel.id);
-            }
-        }
-        return result;
-    }, directChannelsIds);
-    
-    var directChannels = groupIds.filter(function (id) {
-        var channel = channels[id];
-        if (channel) {
-            var lastPost = lastPosts[channel.id];
-            return !favoriteIds.includes(id) && !(0, _channel_utils.isAutoClosed)(config, preferences, channels[id], lastPost ? lastPost.create_at : 0);
-        }
+    return getAllDirectChannels( currentUser, profiles, channels, teammates, groupIds, favoriteIds, settings, config, preferences, lastPosts )
+                .sort(_channel_utils.sortChannelsByDisplayName.bind(null, locale))
+                .map( function (c) {return c.id;})
 
-        return false;
-    }).concat(directChannelsIds).map(function (id) {       
-        return (0, _channel_utils.completeDirectChannelDisplayName)(currentUser.id, profiles, settings, channel);
-    })
-    .sort(
-        // _channel_utils.sortChannelsByDisplayName.bind(null, locale)
-        // _channel_utils.sortChannelsByLastPostAt.bind(null, locale)
-        // (a,b) => b.last_post_at - a.last_post_at
-        function(a, b){
-            return b.last_post_at - a.last_post_at
-        }
-
-    );
-    return directChannels.map(function (c) {
-        return c.id;
-    });
-    
 });
 
 var getSortedDirectChannelWithLastPostAt = exports.getSortedDirectChannelWithLastPostAt = (0, _helpers.createIdsSelector)(_common.getCurrentUser, _common.getUsers, getAllChannels, _preferences.getVisibleTeammate, _preferences.getVisibleGroupIds, getSortedFavoriteChannelIds, _preferences.getTeammateNameDisplaySetting, _general.getConfig, _preferences.getMyPreferences, _posts.getLastPostPerChannel, function (currentUser, profiles, channels, teammates, groupIds, favoriteIds, settings, config, preferences, lastPosts, isFirst) {
-    
-    // console.log("Last Posts....", lastPosts);
-    
-    
+
+    return getAllDirectChannels( currentUser, profiles, channels, teammates, groupIds, favoriteIds, settings, config, preferences, lastPosts )
+                        .sort((a,b) => b.last_post_at - a.last_post_at)
+
+});
+
+var getSortedDirectChannelIds = exports.getSortedDirectChannelIds = (0, _helpers.createIdsSelector)(getUnreadChannelIds, getSortedDirectChannelWithUnreadsIds, filterUnreadChannels);
+
+function getAllDirectChannels( currentUser, profiles, channels, teammates, groupIds, favoriteIds, settings, config, preferences, lastPosts ) {
     if (!currentUser) {
         return [];
-    }
-    // console.log("eu passo por aqui..... getSortedDirectChannelWithUnreadsIds");
-    
+    }    
     var locale = currentUser.locale || 'en';
     var channelValues = Object.values(channels);
     var directChannelsIds = [];
-    // console.log("antes do reduce...", teammates)
     teammates.reduce(function (result, teammateId) {
         var name = (0, _channel_utils.getDirectChannelName)(currentUser.id, teammateId);
         var channel = channelValues.find(function (c) {
             return c.name === name;
         }); //eslint-disable-line max-nested-callbacks
-        // console.log("AAAchannelAAA", channel.id, "...RESULT.......", result, "teammateId", teammateId)
         if (channel) {
             var lastPost = lastPosts[channel.id];
             var otherUser = profiles[(0, _channel_utils.getUserIdFromChannelName)(currentUser.id, channel.name)];
@@ -488,10 +463,8 @@ var getSortedDirectChannelWithLastPostAt = exports.getSortedDirectChannelWithLas
         }
         return result;
     }, directChannelsIds);
-    // console.log("groupIDSSSSSSSSSSSSSS...", groupIds, directChannelsIds);
     
-    var directChannels = groupIds.filter(function (id) {
-        // console.log("nunca vou entrar aqui de maneira nenhuma")
+    return groupIds.filter(function (id) {
         var channel = channels[id];
         if (channel) {
             var lastPost = lastPosts[channel.id];
@@ -500,28 +473,11 @@ var getSortedDirectChannelWithLastPostAt = exports.getSortedDirectChannelWithLas
 
         return false;
     }).concat(directChannelsIds).map(function (id) {
-        var channel = channels[id];
-        // console.log("completeDirectChannelDisplayName...\n",
-        // (0, _channel_utils.completeDirectChannelDisplayName)(currentUser.id, profiles, settings, channel)
-        // );
-        
+        var channel = channels[id];    
         return (0, _channel_utils.completeDirectChannelDisplayName)(currentUser.id, profiles, settings, channel);
     })
-    .sort(
-        // _channel_utils.sortChannelsByDisplayName.bind(null, locale)
-        // _channel_utils.sortChannelsByLastPostAt.bind(null, locale)
-        // (a,b) => b.last_post_at - a.last_post_at
-        function(a, b){
-            return b.last_post_at - a.last_post_at
-        }
 
-    );
-    console.log("eu passo por aqui..... getSortedDirectChannelWithUnreadsIds", directChannels, groupIds, directChannelsIds);
-    return directChannels
-    
-});
-
-var getSortedDirectChannelIds = exports.getSortedDirectChannelIds = (0, _helpers.createIdsSelector)(getUnreadChannelIds, getSortedDirectChannelWithUnreadsIds, filterUnreadChannels);
+}
 
 function getGroupOrDirectChannelVisibility(state, channelId) {
     return (0, _channel_utils.isGroupOrDirectChannelVisible)(getChannel(state, channelId), getMyChannelMemberships(state), (0, _general.getConfig)(state), (0, _preferences.getMyPreferences)(state), (0, _common.getCurrentUser)(state).id, (0, _common.getUsers)(state), (0, _posts.getLastPostPerChannel)(state));
